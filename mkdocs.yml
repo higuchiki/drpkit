@@ -1,0 +1,116 @@
+site_name: drpkit
+site_description: Read and edit DaVinci Resolve project files without opening Resolve. Unofficial, reverse-engineered format reference for .drp and Project.db (Fairlight mixer, clips, markers, media).
+site_url: https://higuchiki.github.io/drpkit/
+repo_url: https://github.com/higuchiki/drpkit
+repo_name: higuchiki/drpkit
+edit_uri: ""
+copyright: MIT License — © Kiyonori Higuchi. Unofficial; not affiliated with Blackmagic Design.
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang:
+        - en
+        - ja
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: ja
+          name: 日本語
+          build: true
+          nav_translations:
+            Overview: ホーム
+            Guide: ガイド
+            Getting started: はじめに
+            CLI reference: コマンドリファレンス
+            Cut list format: カット表の形式
+            File format: ファイル形式
+            .drp and Project.db: .drp と Project.db
+            Fairlight model: Fairlight ミキサー
+            Conversions: 換算
+            Plugins: プラグイン
+            Clips & edits: クリップと編集
+            Media: 素材
+            Project: プロジェクト
+            Unresolved: 未解読
+            Verification: 検証
+            Prior work: 先行例
+            Changelog: 更新履歴
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: [docs_snippets, .]
+      check_paths: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Overview: index.md
+  - Guide:
+      - Getting started: getting-started.md
+      - CLI reference: cli.md
+      - Cut list format: cut-list.md
+  - File format:
+      - .drp and Project.db: file-format.md
+      - Fairlight model: fairlight-model.md
+      - Conversions: conversions.md
+      - Plugins: plugins.md
+      - Clips & edits: clips-edits.md
+      - Media: media.md
+  - Project:
+      - Unresolved: unresolved.md
+      - Verification: verification.md
+      - Prior work: prior-work.md
+      - Changelog: changelog.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/higuchiki/drpkit

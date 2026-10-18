@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Documentation site (MkDocs Material, English and Japanese) at https://higuchiki.github.io/drpkit/ : CLI reference,
+  cut list, `.drp` / `Project.db` structure, Fairlight model with every item, conversions, plugins, clips and edits,
+  media, unresolved items, verification. Item tables are generated from `drpkit/fairlight_map.yaml`
+  (`tools/gen_map_docs.py`). Deployed by GitHub Actions.
+
 ## 0.1.0 — 2026-10-18
 
 First packaged release. Checked with DaVinci Resolve Studio 21.1.1 (macOS).

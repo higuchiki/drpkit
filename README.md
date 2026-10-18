@@ -6,6 +6,8 @@ Read and edit DaVinci Resolve project files **without opening Resolve**: `.drp` 
 - `drpkit compose` — build a new `.drp` from a template project, your audio files and a cut list. The template's whole mixer is kept byte for byte.
 - `drpkit write` — analysis only: write raw values into the mixer tables of a copy of a `.drp`.
 
+**Documentation (full specification, English / 日本語): https://higuchiki.github.io/drpkit/**
+
 Checked with DaVinci Resolve Studio 21.1.1. The free version is not verified. drpkit only touches files, never the Resolve application or its scripting API.
 
 > **Unofficial.** This project is not affiliated with, endorsed by, or supported by Blackmagic Design. "DaVinci Resolve" and "Fairlight" are trademarks of Blackmagic Design Pty. Ltd. The file format was worked out by observation and may change in any Resolve release.
@@ -63,7 +65,7 @@ drpkit compose TEMPLATE.drp OUT.drp --cuts cuts.json \
 - The template's audio tracks are emptied and refilled with your cuts; the mixer (EQ, Dynamics, plugins, buses, routing), the media pool's other items and the rest of the archive stay byte for byte.
 - `--media N=FILE` for **every** audio track of the template timeline (1-based). `N=@template` keeps the template's own media for that track.
 - `--timeline` is required when the template has several timelines.
-- `--keep-clip-fx` carries over each track's clip volume, volume keyframes and clip effects (Voice Isolation, Dialogue Leveler) from the template's earliest clip; fades and keyframes in the cut list take precedence.
+- `--keep-clip-fx` carries over each track's clip volume, volume keyframes and the other effects in `EffectFiltersBA` from the template's earliest clip; fades and keyframes in the cut list take precedence. Clip built-in FX (Voice Isolation, Dialogue Leveler) live in the clip's `FieldsBlob`, which every new clip copies from that earliest clip with or without this option.
 - Import the result in Resolve with *File → Import Project*.
 
 ### Cut list
