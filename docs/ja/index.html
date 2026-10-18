@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>drpkit — Resolve を起動せずに DaVinci Resolve のプロジェクトファイルを読み書き</title>
+<meta name="description" content="drpkit：Resolve を起動せずに DaVinci Resolve の .drp ファイルを読み書きし、Project.db を読み取るツール。非公式・オープンソース・MITライセンス。">
+<link rel="canonical" href="https://higuchiki.github.io/drpkit/ja/">
+<link rel="alternate" hreflang="en" href="https://higuchiki.github.io/drpkit/">
+<link rel="alternate" hreflang="ja" href="https://higuchiki.github.io/drpkit/ja/">
+<link rel="alternate" hreflang="x-default" href="https://higuchiki.github.io/drpkit/">
+<meta property="og:title" content="drpkit — Resolve を起動せずに DaVinci Resolve のプロジェクトファイルを読み書き">
+<meta property="og:description" content="drpkit：Resolve を起動せずに DaVinci Resolve の .drp ファイルを読み書きし、Project.db を読み取るツール。非公式・オープンソース・MITライセンス。">
+<style>
+:root{
+  --bg:#ffffff;
+  --bg-alt:#f6f7f8;
+  --fg:#1b1f23;
+  --fg-dim:#5b6470;
+  --border:#e3e6e9;
+  --accent:#1f6feb;
+  --code-bg:#f0f2f4;
+  --code-fg:#1b1f23;
+  --warn-bg:#fff8e8;
+  --warn-border:#e8d9ad;
+  --tag-bg:#eef1f4;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e1116;
+    --bg-alt:#141920;
+    --fg:#e6e9ed;
+    --fg-dim:#9aa5b1;
+    --border:#262c34;
+    --accent:#5b9dff;
+    --code-bg:#171c23;
+    --code-fg:#dce1e7;
+    --warn-bg:#241f12;
+    --warn-border:#4a3f22;
+    --tag-bg:#1a2029;
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+code,pre,.mono{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+.wrap{
+  max-width:720px;
+  margin:0 auto;
+  padding:0 20px 80px;
+}
+header.top{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding:16px 20px;
+  max-width:720px;
+  margin:0 auto;
+}
+#lang-toggle{
+  font-family:inherit;
+  font-size:13px;
+  color:var(--fg-dim);
+  background:var(--tag-bg);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:5px 10px;
+}
+#lang-toggle:hover{color:var(--fg);text-decoration:none;}
+
+.hero{padding:28px 0 8px;}
+.hero h1{
+  font-size:28px;
+  margin:0 0 6px;
+  letter-spacing:-0.01em;
+}
+.hero .sub{
+  color:var(--fg-dim);
+  font-size:16px;
+  margin:0 0 18px;
+  max-width:560px;
+}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;}
+.badge{
+  font-size:12px;
+  color:var(--fg-dim);
+  background:var(--tag-bg);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:3px 8px;
+}
+
+h2{
+  font-size:18px;
+  margin:40px 0 12px;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+}
+h3{
+  font-size:14px;
+  color:var(--fg-dim);
+  margin:20px 0 8px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+p{margin:0 0 14px;}
+ul{margin:0 0 14px;padding-left:20px;}
+li{margin:0 0 6px;}
+
+pre{
+  background:var(--code-bg);
+  color:var(--code-fg);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:14px 16px;
+  overflow-x:auto;
+  font-size:13px;
+  line-height:1.55;
+  margin:0 0 16px;
+}
+code.inline{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:1px 5px;
+  font-size:.92em;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin:0 0 16px;
+  font-size:13.5px;
+}
+th,td{
+  text-align:left;
+  padding:8px 10px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+th{
+  color:var(--fg-dim);
+  font-weight:600;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+tr:last-child td{border-bottom:none;}
+
+.card{
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:16px 18px;
+  margin:0 0 14px;
+  background:var(--bg-alt);
+}
+.card h3{margin-top:0;}
+
+.notice{
+  background:var(--warn-bg);
+  border:1px solid var(--warn-border);
+  border-radius:8px;
+  padding:14px 16px;
+  font-size:14px;
+  margin:0 0 16px;
+}
+.notice p{margin:0 0 8px;}
+.notice p:last-child{margin-bottom:0;}
+
+a{color:var(--accent);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+footer{
+  color:var(--fg-dim);
+  font-size:13px;
+  padding-top:24px;
+  border-top:1px solid var(--border);
+  margin-top:40px;
+}
+footer p{margin:0 0 6px;}
+
+@media (max-width:480px){
+  .hero h1{font-size:23px;}
+  table{font-size:12.5px;}
+  th,td{padding:6px 7px;}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a id="lang-toggle" href="../">English</a>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <h1>drpkit</h1>
+    <p class="sub">DaVinci Resolve のプロジェクトファイルを <strong>Resolve を起動せずに</strong>扱うツールです。<code class="inline">.drp</code>（書き出したプロジェクト）は読み書き、ディスクDBの <code class="inline">Project.db</code> は読み取りのみです（<code class="inline">write</code>・<code class="inline">compose</code> は <code class="inline">.drp</code> だけが対象）。</p>
+    <div class="badges">
+      <span class="badge">非公式</span>
+      <span class="badge mono">MIT License</span>
+      <span class="badge mono">Python 3.9+</span>
+    </div>
+  </section>
+
+  <h2>できること</h2>
+
+  <div class="card">
+    <h3><code class="inline">drpkit read</code></h3>
+    <p>Fairlight ミキサー設定（トラック・Bus・内蔵EQ・内蔵Dynamics・プラグイン）と編集情報（クリップ・フェード・キーフレーム・トランジション・クリップ色・タイムラインマーカー）を、画面に表示される値に換算して出力します。</p>
+    <pre><code>drpkit read project.drp
+drpkit read project.drp --json
+drpkit read project.drp --edits
+drpkit read Project.db --timeline "Main"</code></pre>
+  </div>
+
+  <div class="card">
+    <h3><code class="inline">drpkit compose</code></h3>
+    <p>テンプレートプロジェクト・音声ファイル・カット表から新しい <code class="inline">.drp</code> を組み立てます。テンプレートのミキサーはそのままバイト単位で保持されます。</p>
+    <pre><code>drpkit compose TEMPLATE.drp OUT.drp --cuts cuts.json \
+    --media 1=host.wav --media 2=guest.flac</code></pre>
+  </div>
+
+  <div class="card">
+    <h3><code class="inline">drpkit write</code></h3>
+    <p>解析専用コマンド。<code class="inline">.drp</code> のコピーのミキサー表に生の値を書き込み、変換表を作るために使います。</p>
+    <pre><code>drpkit write IN.drp OUT.drp --set 'Track1:0x10d=51996'</code></pre>
+  </div>
+
+  <p>Resolve Studio 21.1.1 で確認。無償版は未検証です。ファイルだけを扱い、Resolve 本体やスクリプトAPIは一切使いません。</p>
+
+  <h2>対応範囲</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>項目</th><th>読み取り</th><th>書き込み／compose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>ストリップ基本</td><td>フェーダー・ミュート・ソロ・パン・ルーティング・Busチャンネル数・StripID</td><td>生の値 (<code class="inline">write</code>)</td>
+      </tr>
+      <tr>
+        <td>内蔵EQ・Dynamics</td><td>各バンド・ノブを画面表示値に換算</td><td>生の値</td>
+      </tr>
+      <tr>
+        <td>プラグイン</td><td>De-Esser・Vocal Channel・Limiter・Voice Isolation・Dialogue Leveler</td><td><code class="inline">compose</code> でバイト単位保持</td>
+      </tr>
+      <tr>
+        <td>クリップ</td><td>位置・フェード・色・キーフレーム・クリップFX</td><td>位置・ソースIn/Out・メディア・色・フェード・ボリュームキーフレーム</td>
+      </tr>
+      <tr>
+        <td>タイムラインマーカー</td><td>フレーム・色（16色）・名前・ノート・長さ</td><td>同上</td>
+      </tr>
+      <tr>
+        <td>未解読</td><td colspan="2">トラックのオートメーション、キーフレームのフラグ、プラグインのバイパス、Busのソロ、トラック単位のDialogue Leveler</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:13.5px;color:var(--fg-dim);">詳細一覧と根拠：<a href="https://github.com/higuchiki/drpkit/blob/main/README.md#what-is-supported">README</a> ・ <a href="https://github.com/higuchiki/drpkit/blob/main/FORMAT.md">FORMAT.md</a></p>
+
+  <h2>インストール</h2>
+  <pre><code>pip install git+https://github.com/higuchiki/drpkit.git
+drpkit --version</code></pre>
+  <p><code class="inline">compose</code> には <code class="inline">PATH</code> 上の <code class="inline">ffprobe</code>（FFmpeg）が必要です。<code class="inline">Project.db</code> のクリップFXと圧縮マーカーを読むには Python 3.14 以上、または <code class="inline">zstandard</code> パッケージが必要です。</p>
+
+  <h2>安全性</h2>
+  <ul>
+    <li><code class="inline">read</code> は入力を一切変更しません。<code class="inline">.drp</code> は読み取り専用で zip として開き、<code class="inline">Project.db</code> は読み取り専用・変更不可で開きます。</li>
+    <li><code class="inline">write</code> と <code class="inline">compose</code> は上書きしません（出力先が既にあれば拒否）。一時ファイルに書き出して読み直し・検証し（<code class="inline">compose</code> は全クリップをカット表と照合）、合格したときだけ一度に出力名へ移します。失敗時は出力ファイルを残しません。</li>
+    <li>結果は本番とは別の検証用プロジェクトライブラリに読み込み、原本のバックアップを保持してください。</li>
+  </ul>
+
+  <div class="notice">
+    <p><strong>非公式プロジェクトです。</strong>Blackmagic Design 社とは無関係・提携・支援関係はありません。「DaVinci Resolve」「Fairlight」は Blackmagic Design Pty. Ltd. の商標です。ファイル形式は観察によって解読したもので、Resolve の更新で変わることがあります。</p>
+    <p>常にコピーで作業してください。<code class="inline">write</code> と <code class="inline">compose</code> の出力は別の検証用プロジェクトライブラリで使い、Resolve 上で結果を確認してから本番に反映してください。<strong>無保証</strong>：プロジェクトの破損・消失について作者は責任を負いません。自己責任でご利用ください。詳細は <a href="https://github.com/higuchiki/drpkit/blob/main/LICENSE">LICENSE</a> を参照してください。</p>
+  </div>
+
+  <h2>先行例</h2>
+  <p><a href="https://github.com/samuelgursky/davinci-resolve-mcp">samuelgursky/davinci-resolve-mcp</a>（MIT）は同じ内部データを扱い、Bus の構成・ルーティングの読み書きを実装しています。このデータが読み取れることを示してくれた同プロジェクトに感謝します。drpkit は別の領域（内蔵Dynamics・EQの画面値換算、フェーダー、ソロ、処理順、プラグインのノブ、トラックのVoice Isolation状態、編集情報、マーカー）を独自に特定して扱っています。Bus の構成やルーティング変更が必要な場合は davinci-resolve-mcp を使ってください。</p>
+
+  <footer>
+    <p><a href="https://github.com/higuchiki/drpkit">github.com/higuchiki/drpkit</a></p>
+    <p>MIT License — © Kiyonori Higuchi</p>
+  </footer>
+
+</div>
+</body>
+</html>
