@@ -1,0 +1,21 @@
+{
+  "units": "frames",
+  "cuts": [
+    {
+      "tracks": "all",
+      "source_in": 24,
+      "source_out": 96,
+      "timeline_start": 86400,
+      "fade_in": 6,
+      "fade_out": 12
+    },
+    {
+      "tracks": "all",
+      "source_in": 144,
+      "source_out": 216,
+      "timeline_start": 86496,
+      "fade_in": 12,
+      "fade_out": 6
+    }
+  ]
+}

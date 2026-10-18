@@ -1,0 +1,46 @@
+# Expected values for tests/fixtures/fixture_default-01.drp
+# A fresh Resolve 21.1.1 project: 2 audio tracks (Track1 stereo, Track2 mono), untouched mixer.
+# Values are Resolve's factory defaults as shown in the Fairlight UI / user manual.
+timeline: Fixture
+strips:
+  Track1:
+    fader: 0 dB
+    mute: 'OFF'
+    solo: 'OFF'
+    eq_on: 'ON'
+    proc_order: FX→DY→EQ (default)
+    eq_band1_freq: 70 Hz
+    eq_band1_on: 'OFF'
+    eq_band1_type: HPF
+    eq_band1_slope: 12 dB/oct
+    eq_band2_type: ローシェルフ
+    eq_band2_range: L
+    eq_band3_type: ベル
+    eq_band6_type: LPF
+    eq_band6_freq: 22000 Hz
+    comp_on: 'OFF'
+    comp_threshold: -15 dB
+    comp_ratio: 2.0:1
+    comp_attack: 1.4 ms
+    comp_release: 93 ms
+    dyn_makeup: 0 dB
+    exp_threshold: -35 dB
+    limiter_on: 'OFF'
+    limiter_threshold: -21 dB
+    route_connected: 'ON'
+    route_bus: '0'
+    pan_x: -100 %
+  Track2:
+    fader: 0 dB
+    mute: 'OFF'
+    eq_band1_freq: 70 Hz
+    comp_on: 'OFF'
+    comp_threshold: -15 dB
+    comp_ratio: 2.0:1
+    limiter_threshold: -21 dB
+    pan_x: 0 %
+  Bus 1:
+    comp_on: 'OFF'
+    comp_threshold: -15 dB
+    limiter_on: 'OFF'
+    limiter_threshold: -21 dB

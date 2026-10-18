@@ -1,0 +1,33 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unittest:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.9", "3.12"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install FFmpeg (ffprobe for compose tests)
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get update -q && sudo apt-get install -y -q ffmpeg; else brew install ffmpeg; fi
+      - name: Install drpkit
+        run: python -m pip install ".[zstd]"
+      - name: Command line smoke test
+        working-directory: ${{ runner.temp }}
+        run: |
+          drpkit --version
+          drpkit read "$GITHUB_WORKSPACE/tests/fixtures/fixture_markers-01.drp" --edits > /dev/null
+      - name: Unit tests
+        run: python -m unittest discover -s tests -t . -v
+      - name: Privacy scan of committed .drp files
+        run: python tools/sanitize_drp.py --check $(git ls-files '*.drp')

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "drpkit"
+version = "0.1.0"
+description = "Read and edit DaVinci Resolve project files (.drp / Project.db) without opening Resolve (unofficial)"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+dependencies = ["PyYAML>=5.4"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Editors",
+]
+
+[project.optional-dependencies]
+# Project.db clip effects on Python < 3.14 (3.14+ has compression.zstd built in)
+zstd = ["zstandard"]
+
+[project.scripts]
+drpkit = "drpkit.cli:main"
+
+[tool.setuptools]
+packages = ["drpkit"]
+
+[tool.setuptools.package-data]
+drpkit = ["fairlight_map.yaml"]

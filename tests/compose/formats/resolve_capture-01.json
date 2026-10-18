@@ -1,0 +1,310 @@
+{
+ "T_WAV16_44100_1ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "16",
+   "Sample Rate": "44100",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV16_44100_2ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "16",
+   "Sample Rate": "44100",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV16_48000_1ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "16",
+   "Sample Rate": "48000",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV16_48000_2ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "16",
+   "Sample Rate": "48000",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV24_44100_1ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "24",
+   "Sample Rate": "44100",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV24_44100_2ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "24",
+   "Sample Rate": "44100",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV24_48000_1ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "24",
+   "Sample Rate": "48000",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV24_48000_2ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "24",
+   "Sample Rate": "48000",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV32float_44100_1ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "44100",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV32float_44100_2ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "44100",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV32float_48000_1ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "48000",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_WAV32float_48000_2ch-01.drp": {
+  "props": {
+   "Format": "Wave",
+   "Audio Codec": "Linear PCM",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "48000",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_FLAC16_44100_1ch-01.drp": {
+  "props": {
+   "Format": "FLAC",
+   "Audio Codec": "FLAC",
+   "Audio Bit Depth": "16",
+   "Sample Rate": "44100",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_FLAC16_44100_2ch-01.drp": {
+  "props": {
+   "Format": "FLAC",
+   "Audio Codec": "FLAC",
+   "Audio Bit Depth": "16",
+   "Sample Rate": "44100",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_FLAC16_48000_1ch-01.drp": {
+  "props": {
+   "Format": "FLAC",
+   "Audio Codec": "FLAC",
+   "Audio Bit Depth": "16",
+   "Sample Rate": "48000",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_FLAC16_48000_2ch-01.drp": {
+  "props": {
+   "Format": "FLAC",
+   "Audio Codec": "FLAC",
+   "Audio Bit Depth": "16",
+   "Sample Rate": "48000",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_FLAC24_44100_1ch-01.drp": {
+  "props": {
+   "Format": "FLAC",
+   "Audio Codec": "FLAC",
+   "Audio Bit Depth": "24",
+   "Sample Rate": "44100",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_FLAC24_44100_2ch-01.drp": {
+  "props": {
+   "Format": "FLAC",
+   "Audio Codec": "FLAC",
+   "Audio Bit Depth": "24",
+   "Sample Rate": "44100",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_FLAC24_48000_1ch-01.drp": {
+  "props": {
+   "Format": "FLAC",
+   "Audio Codec": "FLAC",
+   "Audio Bit Depth": "24",
+   "Sample Rate": "48000",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_FLAC24_48000_2ch-01.drp": {
+  "props": {
+   "Format": "FLAC",
+   "Audio Codec": "FLAC",
+   "Audio Bit Depth": "24",
+   "Sample Rate": "48000",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_m4a_44100_1ch-01.drp": {
+  "props": {
+   "Format": "M4A",
+   "Audio Codec": "AAC",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "44100",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_m4a_44100_2ch-01.drp": {
+  "props": {
+   "Format": "M4A",
+   "Audio Codec": "AAC",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "44100",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_m4a_48000_1ch-01.drp": {
+  "props": {
+   "Format": "M4A",
+   "Audio Codec": "AAC",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "48000",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_m4a_48000_2ch-01.drp": {
+  "props": {
+   "Format": "M4A",
+   "Audio Codec": "AAC",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "48000",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_mp3_44100_1ch-01.drp": {
+  "props": {
+   "Format": "MP3",
+   "Audio Codec": "MP3",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "44100",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_mp3_44100_2ch-01.drp": {
+  "props": {
+   "Format": "MP3",
+   "Audio Codec": "MP3",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "44100",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_mp3_48000_1ch-01.drp": {
+  "props": {
+   "Format": "MP3",
+   "Audio Codec": "MP3",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "48000",
+   "Audio Ch": "1",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ },
+ "T_mp3_48000_2ch-01.drp": {
+  "props": {
+   "Format": "MP3",
+   "Audio Codec": "MP3",
+   "Audio Bit Depth": "32",
+   "Sample Rate": "48000",
+   "Audio Ch": "2",
+   "Duration": "00:00:10:00",
+   "Online Status": "Online"
+  }
+ }
+}

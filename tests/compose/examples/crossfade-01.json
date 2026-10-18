@@ -1,0 +1,18 @@
+{
+  "units": "frames",
+  "cuts": [
+    {
+      "track": 1,
+      "source_in": 24,
+      "source_out": 96,
+      "timeline_start": 86400
+    },
+    {
+      "track": 1,
+      "source_in": 144,
+      "source_out": 216,
+      "timeline_start": 86472,
+      "crossfade": 24
+    }
+  ]
+}

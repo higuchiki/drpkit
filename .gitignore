@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+.pytest_cache/
+# never commit real projects or audio
+*.wav
+*.mp3
+*.m4a
+*.aif
+*.aiff
+*.flac
+Project.db
+*.drp
+!tests/fixtures/*.drp
+# synthetic test media and anonymized fixtures for drp_compose
+!tests/compose/**
+build/
+dist/
+*.egg-info/

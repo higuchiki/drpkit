@@ -1,0 +1,31 @@
+# Expected values for tests/fixtures/fixture_roundtrip-01.drp
+# = fixture_default-01.drp -> fairlight_writer.py (values below) -> fixture_written-01.drp
+#   -> imported into Resolve 21.1.1 (ImportProject) -> exported again (ExportProject).
+# Stored values written and the UI values they correspond to (UI values were read on screen
+# in Resolve for the same stored values during the original analysis):
+#   Track2 0x10c=1 0x10d=51996(3.0:1) 0x10e=-200 0x110=40496(4.0 ms) 0x112=32196(134 ms)
+#          0x109=68 0x002=1 0x001=-60 0x0f1=160 0x101=1
+#   Bus 1  0x11d=1 0x11e=-15 0x10d=70000(5.0:1)
+timeline: Fixture
+strips:
+  Track1:
+    fader: 0 dB
+    mute: 'OFF'
+    comp_on: 'OFF'
+    comp_ratio: 2.0:1
+  Track2:
+    fader: -6 dB
+    mute: 'ON'
+    comp_on: 'ON'
+    comp_ratio: 3.0:1
+    comp_threshold: -20 dB
+    comp_attack: 4.0 ms
+    comp_release: 134 ms
+    dyn_makeup: 6.8 dB
+    eq_band1_freq: 160 Hz
+    eq_band1_on: 'ON'
+    limiter_on: 'OFF'
+  Bus 1:
+    comp_ratio: 5.0:1
+    limiter_on: 'ON'
+    limiter_threshold: -1.5 dB

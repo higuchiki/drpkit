@@ -1,0 +1,18 @@
+{
+  "units": "frames",
+  "cuts": [
+    {
+      "track": 1,
+      "source_in": 24,
+      "source_out": 72,
+      "timeline_start": 86400,
+      "color": "Orange"
+    },
+    {
+      "track": 1,
+      "source_in": 120,
+      "source_out": 168,
+      "timeline_start": 86448
+    }
+  ]
+}
