@@ -4,11 +4,11 @@ Read and edit DaVinci Resolve project files **without opening Resolve**: `.drp` 
 
 - `drpkit read` — Fairlight mixer settings (tracks, buses, built-in EQ / Dynamics, plugins) and edit information (clips, fades, keyframes, transitions, clip colors, timeline markers), converted to the values shown in the UI.
 - `drpkit compose` — build a new `.drp` from a template project, your audio files and a cut list. The template's whole mixer is kept byte for byte.
-- `drpkit write` — analysis only: write raw values into the mixer tables of a copy of a `.drp`.
+- `drpkit write` — change existing mixer values in a copy of a `.drp`: raw values (analysis), or an EQ frequency in whole Hz with `--eq-freq` (the linked knob and range are set too). `--verify-eq` checks a re-export from Resolve.
 
 **Documentation (full specification, English / 日本語): https://higuchiki.github.io/drpkit/**
 
-Checked with DaVinci Resolve Studio 21.1.1. The free version is not verified. drpkit only touches files, never the Resolve application or its scripting API.
+Checked with DaVinci Resolve Studio 21.1.1 (macOS). The free version was checked only as DaVinci Resolve 19.1.3 (build 7) on Windows 11 with Python 3.10.6: reading, `write` and `compose` (see [Verification](https://higuchiki.github.io/drpkit/verification/)). Other versions, including the free version of 21.1.1, are untested. drpkit only touches files, never the Resolve application or its scripting API.
 
 > **Unofficial.** This project is not affiliated with, endorsed by, or supported by Blackmagic Design. "DaVinci Resolve" and "Fairlight" are trademarks of Blackmagic Design Pty. Ltd. The file format was worked out by observation and may change in any Resolve release.
 
@@ -120,10 +120,15 @@ Writes arbitrary int32 values into the channel settings tables of a **copy** of 
 ```bash
 drpkit write IN.drp OUT.drp --set 'Track1:0x10d=51996' --set 'Bus 1:0x11d=1'
 drpkit write IN.drp OUT.drp --timeline "Main" --set 'Track1:0x001=-60'   # required with several timelines
+drpkit write IN.drp OUT.drp --set '@A1:0x1=-90'          # unnamed track by strip id (@A1 = strip 0)
+drpkit write IN.drp OUT.drp --eq-freq 'Bus 1:2=1234'     # EQ band 2 at 1234 Hz (whole Hz only)
+drpkit write REEXPORT.drp --verify-eq --eq-freq 'Bus 1:2=1234'   # read only: exit 0 match / 1 mismatch / 2 bad arguments
 drpkit write IN.drp --dump-item 0x10d
 ```
 
 Every written cell is re-read and compared; the output is created only if exactly the requested cells changed. Never point it at a project you care about.
+
+`write` changes items that already exist in the mixer tables; it does not add new items or plugins. `--eq-freq NAME:BAND=HZ` accepts whole Hz only and writes the frequency together with its knob and range items. Resolve can change a value on import (in the free version 19.1.3, 17 of 18 tested frequencies came back exactly; 1399 Hz on a bus band 5 became 1392 Hz, also when entered in the UI), so import, export again and run `--verify-eq`. A matching stored value is not a guarantee of the sound: the EQ type and the compressor Mix change the actual level in ways that are not simply proportional. Details: [CLI](https://higuchiki.github.io/drpkit/cli/#drpkit-write) and [Verification](https://higuchiki.github.io/drpkit/verification/).
 
 ## What is supported
 
@@ -159,7 +164,7 @@ Built-in Dynamics conversion accuracy: generally within ±1 % (last displayed di
 
 ### What was checked in DaVinci Resolve Studio 21.1.1 (macOS)
 
-Other versions are untested.
+The free version was checked separately as 19.1.3 (build 7) on Windows 11 — see [Verification](https://higuchiki.github.io/drpkit/verification/#windows-free-1913). Other versions are untested.
 
 - Reader: factory defaults of a new project; 309 Dynamics values read on the UI (write sweep of 23 projects × 10 knobs + individual points); writer → import → export round trip keeps every written value; bus fader −20 dB renders exactly 20.0 dB quieter; fade curves by render; track Voice Isolation on/off toggled in the UI and with the scripting API; 16 marker colors, durations, Japanese text, XML characters and customData made with `Timeline.AddMarker`.
 - Compose: 56 composed projects covering all 28 media format combinations imported with every clip *Online* at the requested positions, In points and fades, audible on both channels; a 4-speaker template with plugins and Dynamics composed with cuts, a crossfade, a fade-out and keyframes kept its mixer and matched the original's loudness section by section (0.0 LU); several media files on one track (mono FLAC and stereo WAV on a mono track) imported *Online* with one media-pool item each; markers written into a template without markers, replacing existing markers, and with absolute frames on a timeline whose first cut is not at the template start, all read back identically by `Timeline.GetMarkers()`.
@@ -170,13 +175,15 @@ Other versions are untested.
 python3 -m unittest discover -s tests -t . -v
 ```
 
-GitHub Actions runs them on Ubuntu and macOS with Python 3.9 and 3.12. The compose tests need `ffmpeg` / `ffprobe`.
+GitHub Actions runs them on Ubuntu, macOS and Windows with Python 3.9 and 3.12. The compose tests need `ffmpeg` / `ffprobe`. Tests that need a local Resolve 19 export are skipped unless a fixture is given through an environment variable.
 
 | Test | What it checks |
 |---|---|
 | `test_dyn_law` | Dynamics conversion vs. values read on the Resolve UI |
 | `test_fixtures` | reader defaults and round trip, fades, bus fader, writer (only requested cells change, refuses to overwrite, no output and no temporary file left on error, `--timeline` with several timelines) |
 | `test_drp_compose` | composition: reader round trip, mixer and archive preserved byte for byte, media metadata for 28 formats against Resolve's own exports, invalid cut lists rejected without output, written file read back and checked against the cut table (a tampered Duration / In / media path / crossfade is refused), no file left on a failed write, crossfade handles, keyframes, clip FX inheritance |
+| `test_eq_frequency` | `--eq-freq` Hz → knob / range conversion, refusal of fractional / out-of-range / conflicting requests, `--verify-eq` exit codes |
+| `test_windows_reader`, `test_windows_writer` | UTF-8 output on a Windows code page, Resolve 19 markers, `@A1` aliases for unnamed tracks, bus fader position (a local Resolve 19 fixture is optional) |
 | `test_markers_media_cli` | track Voice Isolation on/off, markers (read, byte-exact re-encode, compose add / replace / keep / clear, invalid input), several media files per track, the `drpkit` command line, and a privacy scan of every committed `.drp` (the scanner itself is tested on paths, e-mail addresses and user UUIDs hidden in UTF-16, hex, zlib and zstd) |
 
 Fixtures are synthetic: new Resolve projects with generated sine tones. **No real projects or recordings are included**, and fixtures carry only `.drp` exports — imported into Resolve their media shows as offline (the tests do not need it). Before a `.drp` is committed it goes through `tools/sanitize_drp.py`, which neutralizes the machine id, the Resolve user UUID (replaced by a fixed public one) and the absolute paths Resolve stores in the project settings, and `tools/sanitize_drp.py --check` must report nothing. The check looks for home / volume paths (macOS, Linux, Windows), any e-mail address, machine ids and user UUIDs, also inside hex blobs and zlib / zstd streams, unpacked recursively.
@@ -199,14 +206,15 @@ This tool covers a different area of the same blob — built-in Dynamics and EQ 
 
 ## 日本語
 
-DaVinci Resolve のプロジェクトファイルを **Resolve を起動せずに**扱うツールです。`.drp`（書き出したプロジェクト）は読み書き、ディスクDBの `Project.db` は**読み取りのみ**です（`write`・`compose` は `.drp` だけが対象）。Resolve Studio 21.1.1 で確認。無償版は未検証です（ファイルだけを扱い、Resolve 本体やスクリプトAPIは使いません）。
+DaVinci Resolve のプロジェクトファイルを **Resolve を起動せずに**扱うツールです。`.drp`（書き出したプロジェクト）は読み書き、ディスクDBの `Project.db` は**読み取りのみ**です（`write`・`compose` は `.drp` だけが対象）。macOS の Resolve Studio 21.1.1 で確認。無料版は Windows 11 の DaVinci Resolve 19.1.3（build 7）・Python 3.10.6 で、読み取り・`write`・`compose` を確認しました（[検証](https://higuchiki.github.io/drpkit/ja/verification/)）。21.1.1 の無料版を含むほかの版は未検証です。ファイルだけを扱い、Resolve 本体やスクリプトAPIは使いません。
 
-- **非公式ツールです。Blackmagic Design 社とは無関係です。** 形式は観察で解読したもので、Resolve の更新で変わることがあります。動作確認は DaVinci Resolve Studio **21.1.1**（macOS）のみ
+- **非公式ツールです。Blackmagic Design 社とは無関係です。** 形式は観察で解読したもので、Resolve の更新で変わることがあります。動作確認は DaVinci Resolve Studio **21.1.1**（macOS）と、無料版 **19.1.3**（build 7・Windows 11）のみ
 - インストール：Python 3.9 以上で `pip install git+https://github.com/higuchiki/drpkit.git`。依存は PyYAML のみ。`compose` は FFmpeg の `ffprobe` が必要。Project.db のクリップFXと圧縮されたマーカーを読むには Python 3.14 以上か `zstandard`（`drpkit[zstd]`）
 - コマンド
   - `drpkit read 入力.drp`：ミキサー設定（トラック・Bus・内蔵EQ・内蔵Dynamics・プラグイン・トラック内蔵 Voice Isolation の有効/無効）を画面の値に換算して一覧。`--edits` でクリップ位置・フェード・キーフレーム・トランジション・クリップ色・タイムラインマーカー
   - `drpkit compose テンプレ.drp 出力.drp --cuts カット表.json --media 1=音声.wav ...`：テンプレートのミキサーをそのまま残し、カット表どおりにクリップを並べた新しい .drp を作る。カット表の `media` 列で1トラックに複数の素材（BGM の連結など。相対パスはカット表の場所から）、`markers` でタイムラインマーカー（`frame`＝タイムライン上の絶対フレーム／`offset`＝タイムライン開始からのフレーム、名前は必須、16色）
-  - `drpkit write`：解析専用。.drp のコピーのミキサー表へ生の値を書き込む
+  - `drpkit write`：.drp のコピーで、既にあるミキサー設定の値を書き換える。生の値（解析用）か、`--eq-freq` で EQ 周波数を整数Hzで指定（連動するノブ位置・帯域も同時に書く）。`--verify-eq` で Resolve から書き出し直したファイルを照合
+  - 注意：Resolve に読み込むと値が変わることがある（無料版 19.1.3 で 18指定中17が一致、1399 Hz が 1392 Hz に）。読み込み後に書き出して `--verify-eq` で確認してください。EQ の種類やコンプの Mix によって、同じ保存値でも実際の音量の変わり方は単純ではありません（詳細は[検証](https://higuchiki.github.io/drpkit/ja/verification/)）
 - 安全：読み取りは原本を変更しません。書き込み系はすべて、出力先が既にあれば拒否し（上書きしない）、全変更をメモリ上で検証したうえで一時ファイルに書き出し、読み直して再検証（`compose` は全クリップ・クロスフェードをカット表と照合）してから、一度に出力名へ移します。エラー時は一時ファイルを消し、出力を残しません。結果は**本番とは別の検証用プロジェクトライブラリ**に読み込み、原本のバックアップを保持してください。プロジェクトの破損・消失について作者は責任を負いません
 - 確度記号：無印＝直読／²＝2点以上で式を確定／※＝画面値との対応表（Dynamics は補間）／?＝1点のみ・参考値／✗＝未確定
 - 未解読：トラック単位の Dialogue Leveler 設定、トラックのオートメーション、キーフレームのフラグ、項目 `0xB9`、プラグインのバイパス、Bus のソロなど（一覧は英語版「What is supported」と [FORMAT.md](FORMAT.md#unresolved)）

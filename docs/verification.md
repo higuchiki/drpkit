@@ -1,6 +1,6 @@
 # Verification
 
-Everything was checked with **DaVinci Resolve Studio 21.1.1 on macOS**. Other versions, and the free version, are untested. The method is always the same: change one thing (in the UI, with the scripting API, or by writing a stored value with `drpkit write`), export, compare — and where sound is involved, **render and measure**.
+Everything below was checked with **DaVinci Resolve Studio 21.1.1 on macOS**, except the section [Windows, free version 19.1.3](#windows-free-1913). Other versions, including the free version of 21.1.1, are untested. The method is always the same: change one thing (in the UI, with the scripting API, or by writing a stored value with `drpkit write`), export, compare — and where sound is involved, **render and measure**.
 
 ## Reader
 
@@ -30,13 +30,28 @@ Everything was checked with **DaVinci Resolve Studio 21.1.1 on macOS**. Other ve
 | several files on one track | mono FLAC and stereo WAV on a mono track imported *Online* with one media-pool item each |
 | markers | written into a template without markers, replacing existing markers, and with absolute frames on a timeline whose first cut is not at the template start — all read back identically by `Timeline.GetMarkers()` |
 
+
+## Windows, free version 19.1.3 {#windows-free-1913}
+
+Windows 11, DaVinci Resolve 19.1.3 (build 7, free version), Python 3.10.6. Results apply to this version only; they are not a statement about the free version in general or about 21.1.1.
+
+| What | Result |
+|---|---|
+| read, `write`, `compose` | exports read; written and composed projects imported. Fixes made for this setup: UTF-8 command line output (was `UnicodeEncodeError` on CP932), Resolve 19 marker format, unnamed tracks as `@A1` / `@A2`, bus fader position |
+| EQ frequency (`--eq-freq`) | 18 whole-Hz settings imported and exported again: 17 came back exactly. Bus band 5 at 1399 Hz became 1392 Hz; entering 1399 Hz in the UI, saving and reloading gives the same result. The rule behind it is not known, so use `--verify-eq` on the re-export |
+| fader | −6 dB rendered as −6.000001 dB |
+| EQ gain vs. type | 440 Hz, Q 2, +6 dB rendered +8.108108 dB with the *Fire* type and +6.000000 dB with *Earth*; only the type differed. This is the EQ type's response, not a write error. Fix the type when you compare gain |
+| compressor Mix | −30 dB, 3:1, makeup 0: Mix 0 rendered compressed audio only. Mix 50 / 75 / 100 matched `Mix0 audio + (Mix/100)² × unprocessed audio` within one 24-bit step in two separate windows; Mix 100 measured +3.028825 dB. Mix is not a wet percentage, but the `.drp` stores the UI value as it is — write the UI value, do not invert or square it |
+
+The renders used a steady 440 Hz tone, with the right channel silent in the original routing. They do not cover audio in general, every setting, left/right behaviour or listening quality. Not decoded: Dialogue Leveler and other items listed in [Unresolved](unresolved.md); writing a `Project.db` directly is not supported.
+
 ## Automated tests {#automated-tests}
 
 ```bash
 python3 -m unittest discover -s tests -t . -v
 ```
 
-GitHub Actions runs them on Ubuntu and macOS with Python 3.9 and 3.12, plus a privacy scan of every committed `.drp`. The compose tests need `ffmpeg` / `ffprobe`.
+GitHub Actions runs them on Ubuntu, macOS and Windows with Python 3.9 and 3.12 (tests that need a local Resolve 19 export are skipped there), plus a privacy scan of every committed `.drp`. The compose tests need `ffmpeg` / `ffprobe`.
 
 | Test | What it checks |
 |---|---|

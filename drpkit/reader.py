@@ -205,7 +205,7 @@ def channel_tables(b):
         if names and names[0].startswith("Bus"):
             for item, vals in _bus_part_a(b, start, n).items():
                 items.setdefault(item, vals)
-        tables.append({"names": names, "items": items})
+        tables.append({"names": names, "items": items, "record_start": start})
     return tables
 
 
@@ -213,16 +213,46 @@ def _bus_part_a(b, before, n):
     """Bus 表の前半（フェーダー 0x001・ミュート 0x002 など）。名前表とは離れた位置にあり、
     見出し [u32 0][u32 7]（7＝Bus の種別番号。プラグインの所属と同じ）の直後に列数 n のレコード列が続く。
     Bus 表より前で最後に現れる、10レコード以上・全列数 n のものを採用（2026-10-18 書き出しの音量実測で確定）"""
+    recs = _bus_part_a_records(b, before, n)
+    out = {}
+    for _, item, _, vals in recs:
+        out.setdefault(item, vals)
+    return out
+
+
+def _bus_part_a_records(b, before, n):
+    """Keep offsets as well as values so reader and writer use the same Bus region."""
     pat = struct.pack("<IIIII", 0, 7, 1, 0x001, n)
     best = None
     for m in re.finditer(re.escape(pat), b[:before]):
         recs, _ = _parse_records(b, m.start() + 8)
         if len(recs) >= 10 and all(x[2] == n for x in recs):
             best = recs
-    out = {}
-    for _, item, _, vals in best or []:
-        out.setdefault(item, vals)
-    return out
+    return best or []
+
+
+def track_aliases(tab):
+    """Stable @A1, @A2 selectors from strip IDs, including unnamed stereo columns.
+
+    Only audio mixer tables have both fader and EQ records. A nonnegative strip ID
+    starts a track; -1 is a continuation column. Never infer groups from blank names.
+    """
+    if not all(k in tab['items'] for k in (0x001, 0x0df, 0x458)):
+        return {}
+    if tab['names'] and tab['names'][0].startswith(('Bus', 'VCA', 'Mapping', 'Folder')):
+        return {}
+    ids = tab['items'][0x458]
+    starts = [value for value in ids if value >= 0]
+    if (len(ids) != len(tab['names']) or not ids or ids[0] < 0
+            or any(value < -1 for value in ids) or len(set(starts)) != len(starts)):
+        return {}  # Ambiguous layouts must not select a different track silently.
+    aliases, current = {}, None
+    for col, strip_id in enumerate(ids):
+        if strip_id >= 0:
+            current = '@A%d' % (strip_id + 1)
+        if current is not None:
+            aliases.setdefault(current, []).append(col)
+    return aliases
 
 
 # ---------------- FLStudioModel：プラグイン ----------------
@@ -384,6 +414,13 @@ def read(path, timeline=None, show_all=False):
         strips = []
         for tab in tabs:
             names = tab["names"]
+            aliases = track_aliases(tab)
+            if aliases:
+                names = list(names)
+                for alias, cols in aliases.items():
+                    for col in cols:
+                        if col < len(names) and not names[col]:
+                            names[col] = alias
             if not names or names[0].startswith(("VCA", "Mapping", "Folder")) or names[0] == "":
                 continue
             seen = {}
@@ -608,12 +645,21 @@ def decode_markers(payload, colors):
         if (f, w) != (2, 2):
             continue
         for ef, ew, ev in _pb(v):
-            if (ef, ew) != (2, 2):
+            if ew != 2 or ef not in (1, 2):
                 continue
             e = {}
             for a, b_, c in _pb(ev):
                 e.setdefault(a, c)
-            pos = dict((a, c) for a, b_, c in _pb(e.get(1, b""))).get(1, 0)
+            if ef == 1:
+                pos = e.get(1, 0)
+                if not isinstance(pos, int):
+                    raise ValueError("unexpected legacy marker position")
+                frame = pos
+            else:
+                pos = e.get(1, b"")
+                if not isinstance(pos, bytes):
+                    raise ValueError("unexpected marker position")
+                frame = _unzigzag(dict((a, c) for a, b_, c in _pb(pos)).get(1, 0))
             val = e.get(2, b"")
             if len(val) < 8 or struct.unpack_from(">I", val, 4)[0] != len(val) - 8:
                 raise ValueError("unexpected marker record")
@@ -628,7 +674,7 @@ def decode_markers(payload, colors):
                     custom = c.decode("utf-8")
             if len(texts) != 3:
                 raise ValueError("unexpected marker text fields")
-            out.append({"frame": _unzigzag(pos), "color": colors.get(code, "未較正(%d)" % code),
+            out.append({"frame": frame, "color": colors.get(code, "未較正(%d)" % code),
                         "name": texts[2], "note": texts[0], "duration": int(texts[1]), "custom_data": custom})
     return sorted(out, key=lambda m: m["frame"])
 
@@ -790,7 +836,7 @@ def _items_from_xml(seq_xml):
         tkey = ty.group(1) if ty else None
         counts[tkey] = counts.get(tkey, 0) + 1
         nm = re.search(r"<UserDefinedName>([^<]*)</UserDefinedName>|<UserDefinedName/>", body)
-        tname = nm.group(1) if nm and nm.group(1) else ""
+        tname = nm.group(1) if nm and nm.group(1) else "@%s%d" % ("A" if tkey == "1" else "V", counts[tkey])
         for im in re.finditer(r"<(Sm2Ti\w+) DbId=\"([^\"]+)\">(.*?)</\1>", body, re.S):
             kind, dbid, ib = im.group(1), im.group(2), im.group(3)
             g = lambda tag: (re.search(r"<%s>([^<]*)</%s>" % (tag, tag), ib) or [None, None])[1]
@@ -1046,7 +1092,16 @@ def check_expect(res, exp):
     return ok, ng
 
 
+def configure_stdio():
+    """Keep redirected Windows CLI output UTF-8, independently of its code page."""
+    if os.name == "nt":
+        for stream in (sys.stdout, sys.stderr):
+            if hasattr(stream, "reconfigure"):
+                stream.reconfigure(encoding="utf-8")
+
+
 def main(argv=None, prog=None):
+    configure_stdio()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter, prog=prog)
     ap.add_argument("path")
     ap.add_argument("--timeline")

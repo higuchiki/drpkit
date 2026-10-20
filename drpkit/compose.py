@@ -825,6 +825,7 @@ def verify_preservation(before, after, added_media=(), marker_owner=None):
 
 
 def main(argv=None, prog=None):
+    fr.configure_stdio()
     ap = argparse.ArgumentParser(description=__doc__, prog=prog)
     ap.add_argument('template')
     ap.add_argument('output')

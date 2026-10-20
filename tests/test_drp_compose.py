@@ -254,7 +254,7 @@ class ComposeTest(unittest.TestCase):
 
     def test_keep_clip_fx_all_tracks_and_chronological_prototype(self):
         source = contents(FIXTURE)
-        cfg = fr.yaml.safe_load(Path(fr.MAP_PATH).read_text())
+        cfg = fr.yaml.safe_load(Path(fr.MAP_PATH).read_text(encoding="utf-8"))
         # Actual Resolve exports: copy only clip FX blobs into the synthetic fixture.
         blobs = []
         for name in ('API_VI_c1_vi55-01.drp', 'API_DL_m2_g6-01.drp'):

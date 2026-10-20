@@ -30,13 +30,13 @@ drpkit compose TEMPLATE.drp OUT.drp --cuts cuts.json \
 
 ### `drpkit write`
 
-解析専用コマンド。`.drp` のコピーのミキサー表に生の値を書き込み、変換表を作るために使います。
+`.drp` のコピーで、既にあるミキサー設定の値を書き換えます。生の値（換算表づくり用）か、`--eq-freq` で EQ 周波数を整数Hzで指定します。Resolve は読み込み時に一部の値を変えることがあるので、読み込んで書き出し直したファイルを `--verify-eq` で確認してください。[コマンド](cli.md#drpkit-write)参照。
 
 ```bash
 drpkit write IN.drp OUT.drp --set 'Track1:0x10d=51996'
 ```
 
-Resolve Studio 21.1.1 で確認。無償版は未検証です。ファイルだけを扱い、Resolve 本体やスクリプトAPIは一切使いません。
+macOS の Resolve Studio 21.1.1 で確認。無料版は Windows 11 の DaVinci Resolve 19.1.3（build 7）・Python 3.10.6 で、読み取り・`write`・`compose` を確認しました（[検証](verification.md)）。21.1.1 の無料版を含むほかの版は未検証です。ファイルだけを扱い、Resolve 本体やスクリプトAPIは一切使いません。
 
 ## 対応範囲
 

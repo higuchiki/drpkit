@@ -115,8 +115,41 @@ Refused rather than guessed: overlapping clips (use adjacent cuts and a `crossfa
 
 ## drpkit write
 
+`write` accepts explicit `@A1` / `@A2` selectors for mixer
+`strip_id` 0 / 1, including unnamed tracks and their continuation channels.
+These are not localized UI names. The reader displays these aliases for unnamed
+tracks; ambiguous layouts are refused.
+
+EQ band 2–5 frequency writes require the matching knob and range items in the
+same request. Resolve can restore the previous frequency when only Hz is written.
+The following band 2 tuple was verified in Windows Resolve Free 19.1.3:
+
 ```text
-drpkit write [-h] [--set NAME:ITEM=VALUE ...] [--dump-item ITEM] [--timeline TIMELINE] src [dst]
+drpkit write in.drp out.drp --set "Bus 1:0xf2=1000" --set "Bus 1:0x335=218" --set "Bus 1:0x289=1"
+drpkit write in.drp fader.drp --set "@A1:0x1=-90" --set "Bus 1:0x1=-30"
+```
+
+### EQ frequency in whole Hz (`--eq-freq`)
+
+```text
+drpkit write in.drp out.drp --eq-freq "Bus 1:2=1234" --eq-freq "@A1:4=4321"
+drpkit write roundtrip.drp --verify-eq --eq-freq "Bus 1:2=1234" --eq-freq "@A1:4=4321"
+```
+
+`NAME:BAND=HZ` synchronizes Hz, logarithmic knob, and range. Repeatable. Band 1:
+30–399 Hz; band 6: 1400–22000 Hz; bands 2–5: 30–22000 Hz. Only finite integer
+Hz are accepted. The current range is retained when possible, otherwise the
+first compatible L/ML/MH/H range is selected. Overlapping requests and raw
+`--set` writes to the same frequency/knob/range cells are refused.
+
+Exact preservation of every Hz is **not guaranteed**. Windows Free 19.1.3 retained
+17 of 18 tested settings exactly; Bus band 5 at 1399 Hz became 1392 Hz. A GUI-only
+enter/export/import control reproduced that case. Writes emit a stderr notice.
+Check the actual re-export using read-only `--verify-eq`: exit 0 on match, 1 on
+mismatch, 2 on invalid verification arguments.
+
+```text
+drpkit write [-h] [--set NAME:ITEM=VALUE ...] [--eq-freq NAME:BAND=HZ ...] [--verify-eq] [--dump-item ITEM] [--timeline TIMELINE] src [dst]
 ```
 
 | Argument | Meaning |
@@ -125,6 +158,14 @@ drpkit write [-h] [--set NAME:ITEM=VALUE ...] [--dump-item ITEM] [--timeline TIM
 | `dst` | output `.drp`; must not exist. Required with `--set` |
 | `--set NAME:ITEM=VALUE` | write the int32 `VALUE` (decimal or `0x…`) into item `ITEM` (e.g. `0x10d`) of the strip `NAME` — a track name as stored in item `0xBC`, or `Bus 1`. A stereo track is written in all columns with that name. Repeatable |
 | `--dump-item ITEM` | print that item's values in every table (first 6 columns) and exit; no output file |
+| `--eq-freq NAME:BAND=HZ` | EQ band 1–6 frequency in whole Hz; the knob and range items are written too. Repeatable |
+| `--verify-eq` | read only: compare `src` (a re-export) with the `--eq-freq` requests; exit 0 match, 1 mismatch, 2 invalid arguments. No `dst`, no `--set` |
 | `--timeline NAME` | timeline to write; required when the `.drp` has several timelines with a Fairlight model |
 
 Each written cell is read back and compared; the output is created only if exactly the requested cells changed. It prints one line per write (`書込 NAME 0x… = VALUE（列 …）`). Use it only on copies, to build conversion tables: write a stored value → import into Resolve → read the UI.
+
+Windows CLI output is UTF-8; callers must decode it explicitly. The reader also supports Resolve 19 timeline markers and unnamed edit-track aliases such as `@A1`.
+
+Stored-value equality does not guarantee DSP accuracy. In Windows Free 19.1.3 steady 440 Hz tests, a -6 dB fader matched within 0.000001 dB. EQ +6 dB / Q2 produced +8.108108 dB with Fire, but +6.000000 dB with Earth; fix the EQ style when comparing gain.
+
+Compressor `comp_mix` (0x117) is the GUI Mix value, not a wet percentage. With threshold -30 dB, ratio 3:1 and makeup 0 dB, Mix 0 rendered compressed audio only. Mix 50, 75 and 100 matched `Mix0_audio + (Mix/100)^2 * unprocessed_audio` within one 24-bit sample step in two steady windows. Mix 100 therefore added unprocessed audio to the compressed audio, explaining the measured +3.028825 dB. This is an empirical result for that setup/version, not a general DSP guarantee. Keep raw/GUI values unchanged; do not invert or square values when writing DRP files.

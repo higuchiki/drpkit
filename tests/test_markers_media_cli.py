@@ -240,7 +240,7 @@ class ComposeSeveralMedia(Work):
 
 class CommandLine(Work):
     def run_cli(self, *args):
-        return subprocess.run([sys.executable, "-m", "drpkit"] + list(args), cwd=str(ROOT), capture_output=True, text=True)
+        return subprocess.run([sys.executable, "-m", "drpkit"] + list(args), cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8")
 
     def test_version_and_help(self):
         import drpkit
@@ -253,7 +253,7 @@ class CommandLine(Work):
     def test_read_matches_wrapper(self):
         a = self.run_cli("read", str(MARKERS), "--edits", "--json")
         b = subprocess.run([sys.executable, str(ROOT / "fairlight_reader.py"), str(MARKERS), "--edits", "--json"],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, encoding="utf-8")
         self.assertEqual(a.returncode, 0)
         self.assertEqual(a.stdout, b.stdout)
         self.assertEqual(json.loads(a.stdout)[0]["markers"][0]["name"], "Intro")

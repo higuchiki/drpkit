@@ -115,8 +115,47 @@ drpkit compose [-h] --cuts CUTS --media TRACK=FILE [--media ...] [--timeline TIM
 
 ## drpkit write
 
+内部名が空のトラックも `@A1` / `@A2` で指定できます。これはミキサーの
+`strip_id` 0 / 1 に対応する明示的な識別子で、画面の日本語既定名とは別です。
+readerも空名トラックにはこの識別子を表示します。ステレオ等の継続列もまとめて変更します。
+レイアウトが曖昧な場合は指定を拒否します。
+
+EQ band2〜5のHz変更は、同じストリップのノブ位置・帯域も同時に指定する必要があります。
+HzだけではResolveが元の周波数に戻すため、書き出さずに停止します。
+Windows無料版19.1.3で確認したband2 1000Hzの組は次のとおりです。
+
 ```text
-drpkit write [-h] [--set NAME:ITEM=VALUE ...] [--dump-item ITEM] [--timeline TIMELINE] src [dst]
+drpkit write in.drp out.drp --set "Bus 1:0xf2=1000" --set "Bus 1:0x335=218" --set "Bus 1:0x289=1"
+drpkit write in.drp fader.drp --set "@A1:0x1=-90" --set "Bus 1:0x1=-30"
+```
+
+### EQ周波数を整数Hzで指定する（`--eq-freq`）
+
+```text
+drpkit write in.drp out.drp --eq-freq "Bus 1:2=1234" --eq-freq "@A1:4=4321"
+drpkit write roundtrip.drp --verify-eq --eq-freq "Bus 1:2=1234" --eq-freq "@A1:4=4321"
+```
+
+`名前:バンド番号=Hz` で複数指定でき、Hz・ノブ位置・帯域を自動で同期します。
+band1は30〜399 Hz、band6は1400〜22000 Hz、band2〜5は30〜22000 Hz。
+整数Hzのみ受け付け、小数・NaN・範囲外は拒否します。現在の帯域で表せれば保持し、
+そうでなければL→ML→MH→Hの順で対応帯域を選びます。
+同じセルへのraw `--set` と自動換算の併用・重複指定は拒否します。
+
+**全Hzの完全保持保証ではありません。** Windows無料版19.1.3では、18指定中17指定が
+再出力後も完全一致。Bus band5 1399 Hzは1392 Hzへ正規化され、GUIから1399 Hzを
+直接入力・書き出し・読み戻した対照試験でも再現しました。
+書き込み時には注意をstderrへ出します。再出力したファイルを `--verify-eq` で照合してください。
+これは読み取り専用で、一致なら終了コード0、不一致なら1、指定エラーなら2です。
+
+WindowsのCLI出力はUTF-8です。呼び出し元で出力を読む際もUTF-8を明示してください。Resolve 19形式のタイムラインマーカーと、既定名の編集トラック（`@A1`等）も読み取ります。
+
+保存値の一致は音響特性の一致を保証しません。Windows無料版19.1.3の440Hz定常音では、フェーダー−6dBは0.000001dB以内で一致。EQ＋6dB・Q2はFireで＋8.108108dB、Earthで＋6.000000dBでした。ゲイン比較ではEQ種類も固定してください。
+
+コンプレッサーの`comp_mix`（0x117）はGUIのMix値で、Wetの割合ではありません。しきい値−30dB・3:1・メイクアップ0dBの対照ではMix0が圧縮音のみ、Mix50・75・100は`Mix0の音＋(Mix/100)^2×無処理音`と、離れた2区間で24bitの1段階以内まで一致しました。Mix100は圧縮音に無処理音が加算されるため、実測＋3.028825dBになりました。当該条件・版での実測であり、全条件のDSP保証ではありません。DRP書き込み時の値を反転・二乗せず、GUI値のまま指定してください。
+
+```text
+drpkit write [-h] [--set NAME:ITEM=VALUE ...] [--eq-freq NAME:BAND=HZ ...] [--verify-eq] [--dump-item ITEM] [--timeline TIMELINE] src [dst]
 ```
 
 | 引数 | 意味 |
@@ -125,6 +164,8 @@ drpkit write [-h] [--set NAME:ITEM=VALUE ...] [--dump-item ITEM] [--timeline TIM
 | `dst` | 出力の `.drp`。既にあってはならない。`--set` のとき必須 |
 | `--set 名前:項目=値` | ストリップ `名前`（項目 `0xBC` に保存されたトラック名、または `Bus 1`）の項目 `項目`（例 `0x10d`）に int32 の `値`（10進か `0x…`）を書く。ステレオトラックは同名の全列に書く。複数指定可 |
 | `--dump-item 項目` | その項目の値を各表で表示（先頭6列）して終了。出力ファイルなし |
+| `--eq-freq 名前:バンド=Hz` | EQ band1〜6 の周波数を整数Hzで指定。ノブ位置・帯域も同時に書く。複数指定可 |
+| `--verify-eq` | 読み取り専用：`src`（書き出し直したファイル）を `--eq-freq` の指定と照合。一致0／不一致1／指定エラー2。`dst`・`--set` は不可 |
 | `--timeline 名前` | 書き込むタイムライン。Fairlight のモデルを持つタイムラインが複数あるときは必須 |
 
 書いたセルはすべて読み直して比較し、指定したセルだけが変わったときに限り出力を作ります。書き込みごとに1行（`書込 名前 0x… = 値（列 …）`）を出します。換算表づくり専用です（保存値を書く → Resolve に読み込む → 画面を読む）。必ずコピーに使ってください。

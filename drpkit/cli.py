@@ -20,6 +20,8 @@ Never overwrites an existing output; every change is verified before the single 
 
 
 def main(argv=None):
+    from .reader import configure_stdio
+    configure_stdio()
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv or argv[0] in ("-h", "--help", "help"):
         print(USAGE)

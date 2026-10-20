@@ -30,13 +30,13 @@ drpkit compose TEMPLATE.drp OUT.drp --cuts cuts.json \
 
 ### `drpkit write`
 
-Analysis only: write raw values into the mixer tables of a copy of a `.drp`, to build conversion tables.
+Change existing mixer values in a copy of a `.drp`: raw values (to build conversion tables), or an EQ frequency in whole Hz with `--eq-freq`. After importing into Resolve and exporting again, check it with `--verify-eq` — Resolve can change some values on import. See [CLI](cli.md#drpkit-write).
 
 ```bash
 drpkit write IN.drp OUT.drp --set 'Track1:0x10d=51996'
 ```
 
-Checked with DaVinci Resolve Studio 21.1.1. The free version is not verified. drpkit only touches files, never the Resolve application or its scripting API.
+Checked with DaVinci Resolve Studio 21.1.1 (macOS). The free version was checked only as DaVinci Resolve 19.1.3 (build 7) on Windows 11 with Python 3.10.6: reading, `write` and `compose` (see [Verification](verification.md)). Other versions, including the free version of 21.1.1, are untested. drpkit only touches files, never the Resolve application or its scripting API.
 
 ## What is supported
 
