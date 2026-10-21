@@ -14,6 +14,7 @@
   Other free versions, including 21.1.1, are untested.
 
 ### Fixed
+- `read --edits`: Start / Duration / In stored as `frames|hex double` (fractional frames, e.g. a 24 fps clip on a 60 fps timeline) no longer raise `ValueError`; fractions are kept, Project.db items are ordered by numeric start.
 - Windows: command line output is UTF-8 (was `UnicodeEncodeError` on CP932); tests read output as UTF-8.
 - Bus fader position lookup in `write`; the post-write check keys cells by table number, so unnamed tables no longer collide.
 - `write` refuses an EQ band 2–5 Hz write without the matching knob and range items (Resolve ignores Hz alone).

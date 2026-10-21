@@ -473,15 +473,25 @@ def read(path, timeline=None, show_all=False):
 
 
 # ---------------- カット編集情報（クリップ位置・色・トランジション）----------------
-def _dur(txt):
-    """Duration 欄 '16816|00009a999999e93f'（整数フレーム|端数の double LE）→ float フレーム"""
+def _frames(txt, integral=False):
+    """フレーム値の欄（Start・Duration・In）→ 数値。
+    形式は '216264'（整数）か '216264|009217f40760e03f'（整数フレーム|端数フレームの double LE 16進）。
+    端数は異なる fps の素材（例：60fps タイムラインに 24fps の mp3）を置くと出る。
+    integral=True なら端数ゼロのとき int を返す（Start 用）。それ以外は float。"""
     if txt is None or txt == "":
         return None
     txt = str(txt)
     if "|" in txt:
         n, frac = txt.split("|", 1)
-        return int(n) + struct.unpack("<d", binascii.unhexlify(frac))[0]
-    return float(txt)
+        v = int(n) + struct.unpack("<d", binascii.unhexlify(frac))[0]
+    else:
+        v = float(txt)
+    if integral and float(v).is_integer():
+        return int(v)
+    return v
+
+
+_dur = _frames  # 旧名（互換）
 
 
 def _color_from_blob(hx, cmap):
@@ -842,8 +852,8 @@ def _items_from_xml(seq_xml):
             g = lambda tag: (re.search(r"<%s>([^<]*)</%s>" % (tag, tag), ib) or [None, None])[1]
             out.append({"track_type": "audio" if ty and ty.group(1) == "1" else "video", "track": tname,
                         "kind": kind, "id": dbid, "name": g("Name"), "pretty": g("PrettyType"),
-                        "start": int(g("Start")) if g("Start") else None, "duration": _dur(g("Duration")),
-                        "in": float(g("In")) if g("In") else 0.0, "alignment": g("AlignmentType"),
+                        "start": _frames(g("Start"), True), "duration": _frames(g("Duration")),
+                        "in": _frames(g("In")) or 0.0, "alignment": g("AlignmentType"),
                         "position": g("Position"), "fx": g("EffectFiltersBA"),
                         "track_index": counts[tkey], "media_path": g("MediaFilePath"), "media_ref": g("MediaRef"),
                         "fields": (re.search(r"^\s*<FieldsBlob>([0-9a-fA-F]*)</FieldsBlob>", ib, re.M) or [None, None])[1]})
@@ -923,12 +933,15 @@ def edits_from_db(path, cmap, mcolors=None):
     for tl_name, seq in con.execute("select Name, Sequence from Sm2Timeline"):
         items = []
         q = ("select k.Type, k.UserDefinedName, i.DbType, i.Sm2TiItem_id, i.Name, i.PrettyType, i.Start, i.Duration, "
-             "i.\"In\", i.AlignmentType, i.Position, i.EffectFiltersBA, i.FieldsBlob from Sm2TiItem i join Sm2TiTrack k on i.Sm2TiTrack_id = k.Sm2TiTrack_id "
-             "where k.Sequence = ? order by k.rowid, i.Start")
-        for ty, tn, kind, iid, nm, pt, st, du, inn, al, po, fx, fb in con.execute(q, (seq,)):
+             "i.\"In\", i.AlignmentType, i.Position, i.EffectFiltersBA, i.FieldsBlob, k.rowid from Sm2TiItem i join Sm2TiTrack k on i.Sm2TiTrack_id = k.Sm2TiTrack_id "
+             "where k.Sequence = ? order by k.rowid")
+        rows_ = list(con.execute(q, (seq,)))
+        # Start は text 列（'整数|端数' 形式を含む）で SQL の並びは辞書順になるため、トラック順を保って数値で並べる
+        rows_.sort(key=lambda r: (r[13], _frames(r[6]) if r[6] not in (None, "") else float("inf")))
+        for ty, tn, kind, iid, nm, pt, st, du, inn, al, po, fx, fb, _krow in rows_:
             items.append({"track_type": "audio" if ty == 1 else "video", "track": tn or "", "kind": kind, "id": iid,
-                          "name": nm, "pretty": pt, "start": int(st) if st not in (None, "") else None, "duration": _dur(du),
-                          "in": float(inn) if inn not in (None, "") else 0.0,
+                          "name": nm, "pretty": pt, "start": _frames(st, True), "duration": _frames(du),
+                          "in": _frames(inn) or 0.0,
                           "alignment": str(al) if al is not None else None, "position": str(po) if po is not None else None,
                           "color": colors.get(iid), "fx": bytes(fx) if fx else None,
                           "fields": bytes(fb) if fb else None})
@@ -1018,7 +1031,8 @@ def edits_markdown(res):
             note = ""
             if r["kind"] == "Transition":
                 note = "%s／配置=%s" % (r.get("transition"), r.get("alignment"))
-            f = lambda v: "" if v is None else (("%g" % v) if isinstance(v, float) else str(v))
+            # フレーム値は端数（例 216264.5117）を保つ。%g は6桁で丸めて端数を落とすため小数4桁で出す
+            f = lambda v: "" if v is None else ((("%.4f" % v).rstrip("0").rstrip(".")) if isinstance(v, float) else str(v))
             lines.append("| %s | %s | %s | %s%s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |" % (
                 r["track"], r["kind"], r["name"] or "", f(r["start"]),
                 ("（%s）" % r["start_tc"]) if r.get("start_tc") else "", f(r["end"]), f(r["duration"]),
